@@ -1,7 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 type Enigma struct {
@@ -9,29 +11,45 @@ type Enigma struct {
 	plugboard map[string]string
 	rotors    [3]Rotor //TODO: change this to a slice?
 	reflector map[string]string
+	log       *log.Logger
 }
 
+// TODO: add log to file support
+func (e *Enigma) initLog(logDest string, logFile string) {
+	msg := ""
+	flags := log.Ldate | log.Lmicroseconds | log.Lshortfile
+	switch logDest {
+	case "stdout":
+		e.log = log.New(os.Stdout, msg, flags)
+	case "off":
+		e.log = log.New(ioutil.Discard, msg, flags)
+	case "":
+		e.log = log.New(os.Stdout, msg, flags)
+		e.log.Println("Unrecognized log destination. Defaulting to stdout")
+	}
+}
 func (e *Enigma) code(msg string) string {
 	var result string
 	for _, r := range msg {
 		c := string(r)
-		fmt.Println("Initial character:" + c)
+		e.log.Println("ENCODING:\t" + c)
 		// plugboard mapping, if one exists
 		if p := e.plugboard[c]; p != "" {
+			e.log.Println("PLUGBOARD:\t" + p)
 			c = p
 		}
-		// forward journey
+		// forward signal path
 		for _, rotor := range e.rotors {
 			c = rotor.value(c, false)
-			fmt.Println("After rotor " + rotor.name + ": " + c)
+			e.log.Println("ROTOR " + rotor.name + ":\t" + c)
 		}
-		e.rotors[0].step += 1
 		// reflector
 		c = e.reflector[c]
-		fmt.Println("After reflector: " + c)
+		e.log.Println("REFLECTOR:\t" + c)
+		// reverse signal path
 		for i := len(e.rotors) - 1; i >= 0; i-- {
 			c = e.rotors[i].value(c, true)
-			fmt.Println("After rotor " + e.rotors[i].name + ": " + c)
+			e.log.Println("ROTOR " + e.rotors[i].name + ":\t" + c)
 		}
 		result += c
 
@@ -41,8 +59,7 @@ func (e *Enigma) code(msg string) string {
 
 type Rotor struct {
 	name    string
-	fwiring map[string]string
-	rwiring map[string]string
+	wiring  Wiring
 	ring    string // the actual rotor
 	roffset int    // ringstellung
 	step    int
@@ -54,16 +71,38 @@ func (r *Rotor) value(c string, reflected bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	// adjust for step value for right-hand (entrance) contacts
 	c = string(alphabet[(int(c[0]-'A')+r.step)%26])
-	// if the signal is headed back from the reflector, then we need to use the reverse mapping
-	if reflected {
-		c = r.rwiring[c]
-	} else {
-		c = r.fwiring[c]
-	}
+	c = r.wiring.get(c, reflected)
 	// adjust for step value for left-hand (exit) contacts
 	c = string(alphabet[(int(c[0]-'A')-r.step)%26])
 	return c
 }
+
+/*
+* a data structure for representing the rotor wiring using 2 maps
+* rMap: the signal has come from the right side rotor
+* lMap: the signal has come from the left side rotor
+ */
+type Wiring struct {
+	rMap map[string]string
+	lMap map[string]string
+}
+
+// constructor for the Wiring data structure
+func (w *Wiring) initWiring(mapping map[string]string) {
+	w.rMap = mapping
+	w.lMap = revMap(mapping)
+}
+
+// given a key, return a value from the Wiring data structure
+// left: indicates that the signal has been reflected
+func (w *Wiring) get(key string, left bool) string {
+	if left {
+		return w.lMap[key]
+	}
+	return w.rMap[key]
+}
+
+// reverses a map. k:v -> v:k
 func revMap(m map[string]string) map[string]string {
 	mRev := make(map[string]string)
 	for k, v := range m {
@@ -77,7 +116,7 @@ func main() {
 	q.plugboard = map[string]string{}
 	var r1, r2, r3 Rotor
 	r1.name = "I"
-	r1.fwiring = map[string]string{
+	r1.wiring.initWiring(map[string]string{
 		"A": "E",
 		"B": "K",
 		"C": "M",
@@ -104,10 +143,9 @@ func main() {
 		"X": "R",
 		"Y": "C",
 		"Z": "J",
-	}
-	r1.rwiring = revMap(r1.fwiring)
+	})
 	r2.name = "II"
-	r2.fwiring = map[string]string{
+	r2.wiring.initWiring(map[string]string{
 		"A": "A",
 		"B": "J",
 		"C": "D",
@@ -134,10 +172,9 @@ func main() {
 		"X": "V",
 		"Y": "O",
 		"Z": "E",
-	}
-	r2.rwiring = revMap(r2.fwiring)
+	})
 	r3.name = "III"
-	r3.fwiring = map[string]string{
+	r3.wiring.initWiring(map[string]string{
 		"A": "B",
 		"B": "D",
 		"C": "F",
@@ -164,8 +201,7 @@ func main() {
 		"X": "S",
 		"Y": "Q",
 		"Z": "O",
-	}
-	r3.rwiring = revMap(r3.fwiring)
+	})
 	q.rotors[0] = r1
 	q.rotors[1] = r2
 	q.rotors[2] = r3
@@ -197,5 +233,6 @@ func main() {
 		"Y": "A",
 		"Z": "T",
 	}
-	q.code("A")
+	q.initLog("stdout", "")
+	q.code("N")
 }
