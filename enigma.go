@@ -12,7 +12,7 @@ type Enigma struct {
 	Plugboard map[string]string
 	Rotors    [3]Rotor //TODO: change this to a slice?
 	Reflector map[string]string
-	Log       *log.Logger
+	Log       *log.Logger `json:omitempty`
 }
 
 // TODO: add log to file support
@@ -59,9 +59,20 @@ func (e *Enigma) code(msg string) string {
 }
 
 // saves Enigma configuration to a JSON file
-func (e *Enigma) saveConfig(fn string) {
-	json, _ := json.MarshalIndent(e, "", "\t")
-	ioutil.WriteFile(fn, json, 0644)
+func (e *Enigma) saveConfig(filename string) {
+	data, _ := json.MarshalIndent(e, "", "\t")
+	ioutil.WriteFile(filename, data, 0644)
+}
+
+func loadConfig(filename string) *Enigma {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	var e Enigma
+	err = json.Unmarshal(data, &e)
+	e.initLog("stdout", "")
+	return &e
 }
 
 type Rotor struct {
@@ -88,23 +99,23 @@ func (r *Rotor) value(c string, reflected bool) string {
 * lMap: the signal has come from the left side rotor
  */
 type Wiring struct {
-	rMap map[string]string
-	lMap map[string]string
+	Rmap map[string]string
+	Lmap map[string]string
 }
 
 // constructor for the Wiring data structure
 func (w *Wiring) initWiring(mapping map[string]string) {
-	w.rMap = mapping
-	w.lMap = revMap(mapping)
+	w.Rmap = mapping
+	w.Lmap = revMap(mapping)
 }
 
 // given a key, return a value from the Wiring data structure
 // left: indicates that the signal has been reflected
 func (w *Wiring) get(key string, left bool) string {
 	if left {
-		return w.lMap[key]
+		return w.Lmap[key]
 	}
-	return w.rMap[key]
+	return w.Rmap[key]
 }
 
 // reverses a map. k:v -> v:k
@@ -116,126 +127,6 @@ func revMap(m map[string]string) map[string]string {
 	return mRev
 }
 func main() {
-	var q Enigma
-	q.Name = "M3"
-	q.Plugboard = map[string]string{}
-	//var r1, r2 Rotor
-	q.Rotors[0].Name = "I"
-	q.Rotors[0].Wiring.initWiring(map[string]string{
-		"A": "E",
-		"B": "K",
-		"C": "M",
-		"D": "F",
-		"E": "L",
-		"F": "G",
-		"G": "D",
-		"H": "Q",
-		"I": "V",
-		"J": "Z",
-		"K": "N",
-		"L": "T",
-		"M": "O",
-		"N": "W",
-		"O": "Y",
-		"P": "H",
-		"Q": "X",
-		"R": "U",
-		"S": "S",
-		"T": "P",
-		"U": "A",
-		"V": "I",
-		"W": "B",
-		"X": "R",
-		"Y": "C",
-		"Z": "J",
-	})
-	q.Rotors[1].Name = "II"
-	q.Rotors[1].Wiring.initWiring(map[string]string{
-		"A": "A",
-		"B": "J",
-		"C": "D",
-		"D": "K",
-		"E": "S",
-		"F": "I",
-		"G": "R",
-		"H": "U",
-		"I": "X",
-		"J": "B",
-		"K": "L",
-		"L": "H",
-		"M": "W",
-		"N": "T",
-		"O": "M",
-		"P": "C",
-		"Q": "Q",
-		"R": "G",
-		"S": "Z",
-		"T": "N",
-		"U": "P",
-		"V": "Y",
-		"W": "F",
-		"X": "V",
-		"Y": "O",
-		"Z": "E",
-	})
-	q.Rotors[2].Name = "III"
-	q.Rotors[2].Wiring.initWiring(map[string]string{
-		"A": "B",
-		"B": "D",
-		"C": "F",
-		"D": "H",
-		"E": "J",
-		"F": "L",
-		"G": "C",
-		"H": "P",
-		"I": "R",
-		"J": "T",
-		"K": "X",
-		"L": "V",
-		"M": "Z",
-		"N": "N",
-		"O": "Y",
-		"P": "E",
-		"Q": "I",
-		"R": "W",
-		"S": "G",
-		"T": "A",
-		"U": "K",
-		"V": "M",
-		"W": "U",
-		"X": "S",
-		"Y": "Q",
-		"Z": "O",
-	})
-	q.Reflector = map[string]string{
-		"A": "Y",
-		"B": "R",
-		"C": "U",
-		"D": "H",
-		"E": "Q",
-		"F": "S",
-		"G": "L",
-		"H": "D",
-		"I": "P",
-		"J": "X",
-		"K": "N",
-		"L": "G",
-		"M": "O",
-		"N": "K",
-		"O": "M",
-		"P": "I",
-		"Q": "E",
-		"R": "B",
-		"S": "F",
-		"T": "Z",
-		"U": "C",
-		"V": "W",
-		"W": "V",
-		"X": "J",
-		"Y": "A",
-		"Z": "T",
-	}
-	q.initLog("stdout", "")
-	q.saveConfig(q.Name)
-	q.code("N")
+	v := loadConfig("config/M3.json")
+	v.code("N")
 }
