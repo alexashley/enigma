@@ -1,17 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
 )
 
 type Enigma struct {
-	name      string
-	plugboard map[string]string
-	rotors    [3]Rotor //TODO: change this to a slice?
-	reflector map[string]string
-	log       *log.Logger
+	Name      string
+	Plugboard map[string]string
+	Rotors    [3]Rotor //TODO: change this to a slice?
+	Reflector map[string]string
+	Log       *log.Logger
 }
 
 // TODO: add log to file support
@@ -20,36 +21,36 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 	flags := log.Ldate | log.Lmicroseconds | log.Lshortfile
 	switch logDest {
 	case "stdout":
-		e.log = log.New(os.Stdout, msg, flags)
+		e.Log = log.New(os.Stdout, msg, flags)
 	case "off":
-		e.log = log.New(ioutil.Discard, msg, flags)
+		e.Log = log.New(ioutil.Discard, msg, flags)
 	case "":
-		e.log = log.New(os.Stdout, msg, flags)
-		e.log.Println("Unrecognized log destination. Defaulting to stdout")
+		e.Log = log.New(os.Stdout, msg, flags)
+		e.Log.Println("Unrecognized log destination. Defaulting to stdout")
 	}
 }
 func (e *Enigma) code(msg string) string {
 	var result string
 	for _, r := range msg {
 		c := string(r)
-		e.log.Println("ENCODING:\t" + c)
+		e.Log.Println("ENCODING:\t" + c)
 		// plugboard mapping, if one exists
-		if p := e.plugboard[c]; p != "" {
-			e.log.Println("PLUGBOARD:\t" + p)
+		if p := e.Plugboard[c]; p != "" {
+			e.Log.Println("PLUGBOARD:\t" + p)
 			c = p
 		}
 		// forward signal path
-		for _, rotor := range e.rotors {
+		for _, rotor := range e.Rotors {
 			c = rotor.value(c, false)
-			e.log.Println("ROTOR " + rotor.name + ":\t" + c)
+			e.Log.Println("ROTOR " + rotor.Name + ":\t" + c)
 		}
 		// reflector
-		c = e.reflector[c]
-		e.log.Println("REFLECTOR:\t" + c)
+		c = e.Reflector[c]
+		e.Log.Println("REFLECTOR:\t" + c)
 		// reverse signal path
-		for i := len(e.rotors) - 1; i >= 0; i-- {
-			c = e.rotors[i].value(c, true)
-			e.log.Println("ROTOR " + e.rotors[i].name + ":\t" + c)
+		for i := len(e.Rotors) - 1; i >= 0; i-- {
+			c = e.Rotors[i].value(c, true)
+			e.Log.Println("ROTOR " + e.Rotors[i].Name + ":\t" + c)
 		}
 		result += c
 
@@ -57,23 +58,27 @@ func (e *Enigma) code(msg string) string {
 	return result
 }
 
+// saves Enigma configuration to a JSON file
+func (e *Enigma) saveConfig(fn string) {
+	json, _ := json.MarshalIndent(e, "", "\t")
+	ioutil.WriteFile(fn, json, 0644)
+}
+
 type Rotor struct {
-	name    string
-	wiring  Wiring
-	ring    string // the actual rotor
-	roffset int    // ringstellung
-	step    int
-	notch   string
-	// missing: notch
+	Name    string
+	Wiring  Wiring
+	Roffset int // ringstellung
+	Step    int
+	Notch   string
 }
 
 func (r *Rotor) value(c string, reflected bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	// adjust for step value for right-hand (entrance) contacts
-	c = string(alphabet[(int(c[0]-'A')+r.step)%26])
-	c = r.wiring.get(c, reflected)
+	c = string(alphabet[(int(c[0]-'A')+r.Step)%26])
+	c = r.Wiring.get(c, reflected)
 	// adjust for step value for left-hand (exit) contacts
-	c = string(alphabet[(int(c[0]-'A')-r.step)%26])
+	c = string(alphabet[(int(c[0]-'A')-r.Step)%26])
 	return c
 }
 
@@ -112,11 +117,11 @@ func revMap(m map[string]string) map[string]string {
 }
 func main() {
 	var q Enigma
-	q.name = "M3"
-	q.plugboard = map[string]string{}
-	var r1, r2, r3 Rotor
-	r1.name = "I"
-	r1.wiring.initWiring(map[string]string{
+	q.Name = "M3"
+	q.Plugboard = map[string]string{}
+	//var r1, r2 Rotor
+	q.Rotors[0].Name = "I"
+	q.Rotors[0].Wiring.initWiring(map[string]string{
 		"A": "E",
 		"B": "K",
 		"C": "M",
@@ -144,8 +149,8 @@ func main() {
 		"Y": "C",
 		"Z": "J",
 	})
-	r2.name = "II"
-	r2.wiring.initWiring(map[string]string{
+	q.Rotors[1].Name = "II"
+	q.Rotors[1].Wiring.initWiring(map[string]string{
 		"A": "A",
 		"B": "J",
 		"C": "D",
@@ -173,8 +178,8 @@ func main() {
 		"Y": "O",
 		"Z": "E",
 	})
-	r3.name = "III"
-	r3.wiring.initWiring(map[string]string{
+	q.Rotors[2].Name = "III"
+	q.Rotors[2].Wiring.initWiring(map[string]string{
 		"A": "B",
 		"B": "D",
 		"C": "F",
@@ -202,10 +207,7 @@ func main() {
 		"Y": "Q",
 		"Z": "O",
 	})
-	q.rotors[0] = r1
-	q.rotors[1] = r2
-	q.rotors[2] = r3
-	q.reflector = map[string]string{
+	q.Reflector = map[string]string{
 		"A": "Y",
 		"B": "R",
 		"C": "U",
@@ -234,5 +236,6 @@ func main() {
 		"Z": "T",
 	}
 	q.initLog("stdout", "")
+	q.saveConfig(q.Name)
 	q.code("N")
 }
