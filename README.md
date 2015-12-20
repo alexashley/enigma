@@ -1,7 +1,7 @@
 # Enigma
 An [Enigma](https://en.wikipedia.org/wiki/Enigma_machine) emulator written in Go.
 ## Status
-Currently only supports stepless encoding (essentially a convoluted substitution cipher) on an M3. 
+Currently only supports the M3 with simple stepping
 ## Usage
 ````
 e := loadConfig("config/M3.json")
