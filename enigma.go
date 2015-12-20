@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+// Enigma stores the configuration of the machine.
+// Create a struct
 type Enigma struct {
 	Name      string
 	Plugboard map[string]string
@@ -16,7 +18,11 @@ type Enigma struct {
 	Log       *log.Logger `json:omitempty`
 }
 
-// TODO: add log to file support
+// initLog configures the log for an Enigma struct.
+// The first argument is the destination of the log.
+// stdout -> os.Stdout
+// off -> ioutil.Discard
+// "file" -> writes to given filename (given as second arg)
 func (e *Enigma) initLog(logDest string, logFile string) {
 	msg := ""
 	flags := log.Ldate | log.Lmicroseconds | log.Lshortfile
@@ -30,22 +36,28 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 		e.Log.Println("Unrecognized log destination. Defaulting to stdout")
 	}
 }
+
+// step handles the logic for rotor stepping.
 func (e *Enigma) step() {
 	if e.Stepping {
 		e.Rotors[0].Step += 1
 	}
 }
 
+// reset clears the internal state of the machine.
+// Used mainly for testing
 func (e *Enigma) reset() {
 	for i := 0; i < len(e.Rotors); i++ {
 		e.Rotors[i].Step = 0
 	}
 }
 
+// setStepping enables/disables rotor stepping
 func (e *Enigma) setStepping(status bool) {
 	e.Stepping = status
 }
 
+// code is the encode/decode function for the Enigma's encryption
 func (e *Enigma) code(msg string) string {
 	var result string
 	for _, r := range msg {
@@ -72,17 +84,17 @@ func (e *Enigma) code(msg string) string {
 			e.Log.Println("ROTOR " + e.Rotors[i].Name + ":\t" + c)
 		}
 		result += c
-
 	}
 	return result
 }
 
-// saves Enigma configuration to a JSON file
+// saveConfig marshals the Enigma state into json and saves it to disk.
 func (e *Enigma) saveConfig(filename string) {
 	data, _ := json.MarshalIndent(e, "", "\t")
 	ioutil.WriteFile(filename, data, 0644)
 }
 
+// loadConfig initializes an Enigma by loading a json configuration file.
 func loadConfig(filename string) *Enigma {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -94,6 +106,7 @@ func loadConfig(filename string) *Enigma {
 	return &e
 }
 
+// Rotor is a data structure for representing an Enigma rotor.
 type Rotor struct {
 	Name    string
 	Wiring  Wiring
@@ -102,6 +115,7 @@ type Rotor struct {
 	Notch   string
 }
 
+// value returns the result of a pass through the rotor
 func (r *Rotor) value(c string, reflected bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	// adjust for step value for right-hand (entrance) contacts
@@ -112,24 +126,20 @@ func (r *Rotor) value(c string, reflected bool) string {
 	return c
 }
 
-/*
-* a data structure for representing the rotor wiring using 2 maps
-* rMap: the signal has come from the right side rotor
-* lMap: the signal has come from the left side rotor
- */
+// Wiring is a data structure for representing the rotor wiring using 2 maps
 type Wiring struct {
-	Rmap map[string]string
-	Lmap map[string]string
+	Rmap map[string]string // mapping from the right side of the rotor
+	Lmap map[string]string // mapping from the left side of the rotor
 }
 
-// constructor for the Wiring data structure
+// initWiring is a constructor for the Wiring data structure
 func (w *Wiring) initWiring(mapping map[string]string) {
 	w.Rmap = mapping
 	w.Lmap = revMap(mapping)
 }
 
-// given a key, return a value from the Wiring data structure
-// left: indicates that the signal has been reflected
+// get: given a key, return a value from the Wiring data structure
+// The left param indicates that the signal has been reflected
 func (w *Wiring) get(key string, left bool) string {
 	if left {
 		return w.Lmap[key]
@@ -137,7 +147,7 @@ func (w *Wiring) get(key string, left bool) string {
 	return w.Rmap[key]
 }
 
-// reverses a map. k:v -> v:k
+// revMap reverses a map. k:v -> v:k
 func revMap(m map[string]string) map[string]string {
 	mRev := make(map[string]string)
 	for k, v := range m {
