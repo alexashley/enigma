@@ -223,5 +223,6 @@
 		"Y": "A",
 		"Z": "T"
 	},
+	"Stepping": true,
 	"Log": {}
 }

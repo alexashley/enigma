@@ -12,6 +12,7 @@ type Enigma struct {
 	Plugboard map[string]string
 	Rotors    [3]Rotor //TODO: change this to a slice?
 	Reflector map[string]string
+	Stepping  bool
 	Log       *log.Logger `json:omitempty`
 }
 
@@ -29,9 +30,27 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 		e.Log.Println("Unrecognized log destination. Defaulting to stdout")
 	}
 }
+func (e *Enigma) step() {
+	if e.Stepping {
+		e.Rotors[0].Step += 1
+	}
+}
+
+func (e *Enigma) reset() {
+	for i := 0; i < len(e.Rotors); i++ {
+		e.Rotors[i].Step = 0
+	}
+}
+
+func (e *Enigma) setStepping(status bool) {
+	e.Stepping = status
+}
+
 func (e *Enigma) code(msg string) string {
 	var result string
 	for _, r := range msg {
+		// step the rotors
+		e.step()
 		c := string(r)
 		e.Log.Println("ENCODING:\t" + c)
 		// plugboard mapping, if one exists
@@ -126,7 +145,8 @@ func revMap(m map[string]string) map[string]string {
 	}
 	return mRev
 }
+
 func main() {
 	v := loadConfig("config/M3.json")
-	v.code("N")
+	v.Log.Println("ENCODED MSG:\t" + v.code("AA"))
 }
