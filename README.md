@@ -6,6 +6,7 @@ Currently only supports the M3 with simple stepping
 - Can be extended through the use of JSON configuration files (see config directory)
 - Logging to file/stdout so the machine execution can be traced.
 - Tests for each machine type 
+
 ## Usage
 Example:
 ```go
