@@ -1,11 +1,14 @@
 {
-	"Name": "M3",
-	"Plugboard": {},
+	"Name": "M3 Wehrmacht",
+	"Plugboard": {
+		"Fmap": {},
+		"Rmap": {}
+	},
 	"Rotors": [
 		{
 			"Name": "I",
 			"Wiring": {
-				"Rmap": {
+				"Fmap": {
 					"A": "E",
 					"B": "K",
 					"C": "M",
@@ -33,7 +36,7 @@
 					"Y": "C",
 					"Z": "J"
 				},
-				"Lmap": {
+				"Rmap": {
 					"A": "U",
 					"B": "W",
 					"C": "Y",
@@ -62,14 +65,13 @@
 					"Z": "J"
 				}
 			},
-			"Roffset": 0,
 			"Step": 0,
 			"Notch": ""
 		},
 		{
 			"Name": "II",
 			"Wiring": {
-				"Rmap": {
+				"Fmap": {
 					"A": "A",
 					"B": "J",
 					"C": "D",
@@ -97,7 +99,7 @@
 					"Y": "O",
 					"Z": "E"
 				},
-				"Lmap": {
+				"Rmap": {
 					"A": "A",
 					"B": "J",
 					"C": "P",
@@ -126,14 +128,13 @@
 					"Z": "S"
 				}
 			},
-			"Roffset": 0,
 			"Step": 0,
 			"Notch": ""
 		},
 		{
 			"Name": "III",
 			"Wiring": {
-				"Rmap": {
+				"Fmap": {
 					"A": "B",
 					"B": "D",
 					"C": "F",
@@ -161,7 +162,7 @@
 					"Y": "Q",
 					"Z": "O"
 				},
-				"Lmap": {
+				"Rmap": {
 					"A": "T",
 					"B": "A",
 					"C": "G",
@@ -190,7 +191,6 @@
 					"Z": "M"
 				}
 			},
-			"Roffset": 0,
 			"Step": 0,
 			"Notch": ""
 		}
@@ -224,5 +224,6 @@
 		"Z": "T"
 	},
 	"Stepping": true,
+	"DoubleStep": false,
 	"Log": {}
 }

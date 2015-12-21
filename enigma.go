@@ -11,7 +11,7 @@ import (
 // Create a struct
 type Enigma struct {
 	Name       string
-	Plugboard  map[string]string
+	Plugboard  Wiring
 	Rotors     [3]Rotor //TODO: change this to a slice?
 	Reflector  map[string]string
 	Stepping   bool // increment left every keystroke, middle every
@@ -47,9 +47,11 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 }
 
 // step handles the logic for rotor stepping.
-// the right rotor advances every keypress
-// the middle rotor advances every 26 turns of the right rotor
-// the left rotor advances every 26 turns of the middle rotor
+// Note that the rotors advance *before* they see the signal.
+// Below is the standard stepping sequence for an Enigma machine with 3 rotors:
+// The right rotor advances every keypress.
+// The middle rotor advances every 26 turns of the right rotor.
+// The left rotor advances every 26 turns of the middle rotor.
 func (e *Enigma) step() {
 	if !e.Stepping {
 		return
@@ -79,6 +81,15 @@ func (e *Enigma) setStepping(status bool) {
 }
 
 // code is the encode/decode function for the Enigma's encryption
+// There are 4  main components to the Enigma encryption process
+// Plugboard: operator can create a mapping between letters
+// Static rotor: maps signal from plugboard wires to rotor contacts
+// Rotors: the main encryption mechanism for the Enigma
+// Reflector: redirects the signal back through the rotors
+// The forward signal path for an M3:
+// Plugboard -> Static Rotor -> R rotor -> M rotor -> L rotor
+// Then the signal is hits the reflector and does the reverse journey
+// L rotor -> M rotor -> R rotor -> static rotor -> plugboard
 func (e *Enigma) code(msg string) string {
 	var result string
 	for _, r := range msg {
@@ -87,7 +98,7 @@ func (e *Enigma) code(msg string) string {
 		c := string(r)
 		e.Log.Println("ENCODING:\t" + c)
 		// plugboard mapping, if one exists
-		if p := e.Plugboard[c]; p != "" {
+		if p := e.Plugboard.get(c, false); p != "" {
 			e.Log.Println("PLUGBOARD:\t" + p)
 			c = p
 		}
@@ -103,6 +114,11 @@ func (e *Enigma) code(msg string) string {
 		for i := len(e.Rotors) - 1; i >= 0; i-- {
 			c = e.Rotors[i].value(c, true)
 			e.Log.Println("ROTOR " + e.Rotors[i].Name + ":\t" + c)
+		}
+		// plugboard return
+		if p := e.Plugboard.get(c, true); p != "" {
+			e.Log.Println("PLUGBOARD:\t" + p)
+			c = p
 		}
 		result += c
 	}
@@ -129,11 +145,10 @@ func loadConfig(filename string) *Enigma {
 
 // Rotor is a data structure for representing an Enigma rotor.
 type Rotor struct {
-	Name    string
-	Wiring  Wiring
-	Roffset int // ringstellung
-	Step    int
-	Notch   string
+	Name   string
+	Wiring Wiring
+	Step   int
+	Notch  string
 }
 
 func abs(i int) int {
@@ -154,25 +169,27 @@ func (r *Rotor) value(c string, reflected bool) string {
 	return c
 }
 
-// Wiring is a data structure for representing the rotor wiring using 2 maps
+// Wiring is a data structure for representing the rotor and plugboard wiring
 type Wiring struct {
-	Rmap map[string]string // mapping from the right side of the rotor
-	Lmap map[string]string // mapping from the left side of the rotor
+	// forward mapping: right side of rotor/forward signal through plugboard
+	Fmap map[string]string
+	// reverse mapping: left side of rotor/return signal through plugboard
+	Rmap map[string]string
 }
 
 // initWiring is a constructor for the Wiring data structure
 func (w *Wiring) initWiring(mapping map[string]string) {
-	w.Rmap = mapping
-	w.Lmap = revMap(mapping)
+	w.Fmap = mapping
+	w.Rmap = revMap(mapping)
 }
 
 // get: given a key, return a value from the Wiring data structure
-// The left param indicates that the signal has been reflected
-func (w *Wiring) get(key string, left bool) string {
-	if left {
-		return w.Lmap[key]
+//
+func (w *Wiring) get(key string, reverse bool) string {
+	if reverse {
+		return w.Rmap[key]
 	}
-	return w.Rmap[key]
+	return w.Fmap[key]
 }
 
 // revMap reverses a map. k:v -> v:k
@@ -186,6 +203,8 @@ func revMap(m map[string]string) map[string]string {
 
 func main() {
 	v := loadConfig("config/M3.json")
-	//v.setStepping(false)
-	v.Log.Println("ENCODED MSG:\t" + v.code("AJK"))
+	v.Name = "M3 Wehrmacht"
+	//	v.setStepping(false)
+	v.saveConfig("config/M3.json")
+	v.Log.Println("ENCODED MSG:\t" + v.code("A"))
 }
