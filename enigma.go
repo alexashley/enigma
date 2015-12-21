@@ -31,6 +31,14 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 		e.Log = log.New(os.Stdout, msg, flags)
 	case "off":
 		e.Log = log.New(ioutil.Discard, msg, flags)
+	case "file":
+		f, err := os.Create(logFile)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		e.Log = log.New(ioutil.Discard, msg, flags)
+		e.Log.SetOutput(f)
 	case "":
 		e.Log = log.New(os.Stdout, msg, flags)
 		e.Log.Println("Unrecognized log destination. Defaulting to stdout")
@@ -41,6 +49,7 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 func (e *Enigma) step() {
 	if e.Stepping {
 		e.Rotors[0].Step += 1
+		e.Log.Println("STEPPED ROTOR " + string(e.Rotors[0].Name))
 	}
 }
 
@@ -115,6 +124,13 @@ type Rotor struct {
 	Notch   string
 }
 
+func abs(i int) int {
+	if i < 0 {
+		return i * -1
+	}
+	return i
+}
+
 // value returns the result of a pass through the rotor
 func (r *Rotor) value(c string, reflected bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -122,7 +138,7 @@ func (r *Rotor) value(c string, reflected bool) string {
 	c = string(alphabet[(int(c[0]-'A')+r.Step)%26])
 	c = r.Wiring.get(c, reflected)
 	// adjust for step value for left-hand (exit) contacts
-	c = string(alphabet[(int(c[0]-'A')-r.Step)%26])
+	c = string(alphabet[(abs(int(c[0]-'A')-r.Step))%26])
 	return c
 }
 
@@ -158,5 +174,6 @@ func revMap(m map[string]string) map[string]string {
 
 func main() {
 	v := loadConfig("config/M3.json")
-	v.Log.Println("ENCODED MSG:\t" + v.code("AA"))
+	v.setStepping(false)
+	v.Log.Println("ENCODED MSG:\t" + v.code("QWERTYUIOPASDFGHJKLZXCVBNM"))
 }
