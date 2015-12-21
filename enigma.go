@@ -10,12 +10,13 @@ import (
 // Enigma stores the configuration of the machine.
 // Create a struct
 type Enigma struct {
-	Name      string
-	Plugboard map[string]string
-	Rotors    [3]Rotor //TODO: change this to a slice?
-	Reflector map[string]string
-	Stepping  bool
-	Log       *log.Logger `json:omitempty`
+	Name       string
+	Plugboard  map[string]string
+	Rotors     [3]Rotor //TODO: change this to a slice?
+	Reflector  map[string]string
+	Stepping   bool // increment left every keystroke, middle every
+	DoubleStep bool
+	Log        *log.Logger `json:omitempty`
 }
 
 // initLog configures the log for an Enigma struct.
@@ -46,10 +47,21 @@ func (e *Enigma) initLog(logDest string, logFile string) {
 }
 
 // step handles the logic for rotor stepping.
+// the right rotor advances every keypress
+// the middle rotor advances every 26 turns of the right rotor
+// the left rotor advances every 26 turns of the middle rotor
 func (e *Enigma) step() {
-	if e.Stepping {
-		e.Rotors[0].Step += 1
-		e.Log.Println("STEPPED ROTOR " + string(e.Rotors[0].Name))
+	if !e.Stepping {
+		return
+	}
+	msg := "STEPPED ROTOR "
+	e.Rotors[0].Step += 1
+	e.Log.Println(msg + string(e.Rotors[0].Name))
+	for i := 1; i < len(e.Rotors); i++ {
+		if e.Rotors[i-1].Step >= 26 && (e.Rotors[i-1].Step%26) == 0 {
+			e.Rotors[i].Step += 1
+			e.Log.Println(msg + string(e.Rotors[i].Name))
+		}
 	}
 }
 
@@ -174,6 +186,6 @@ func revMap(m map[string]string) map[string]string {
 
 func main() {
 	v := loadConfig("config/M3.json")
-	v.setStepping(false)
-	v.Log.Println("ENCODED MSG:\t" + v.code("QWERTYUIOPASDFGHJKLZXCVBNM"))
+	//v.setStepping(false)
+	v.Log.Println("ENCODED MSG:\t" + v.code("AJK"))
 }
