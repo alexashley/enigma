@@ -2,14 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	//	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 // Enigma stores the configuration of the machine.
-// Create a struct
 type Enigma struct {
 	Name           string
 	Plugboard      Wiring
@@ -83,6 +82,28 @@ func (e *Enigma) setStepping(status bool) {
 	e.Stepping = status
 }
 
+// isUpperCaseAscii checks if input is in the ASCII range A ... Z
+func isUppercaseAscii(b byte) bool {
+	return (b >= 'A' && b <= 'Z')
+}
+
+// validate returns a string that the Enigma can encode
+// requirements: ASCII A-Z, no numbers or punctuation
+// no doubt there is some DP soln for this that is much more efficient
+func validate(s string) string {
+	replace := " "
+	s = strings.ToUpper(s)
+	for i := 0; i < len(s); i++ {
+		if !isUppercaseAscii(s[i]) {
+			replace += string(s[i])
+		}
+	}
+	for i := 0; i < len(replace); i++ {
+		s = strings.Replace(s, string(replace[i]), "", -1)
+	}
+	return s
+}
+
 // code is the encode/decode function for the Enigma's encryption
 // There are 4  main components to the Enigma encryption process
 // Plugboard: operator can create a mapping between letters
@@ -95,6 +116,7 @@ func (e *Enigma) setStepping(status bool) {
 // L rotor -> M rotor -> R rotor -> static rotor -> plugboard
 func (e *Enigma) code(msg string) string {
 	var result string
+	msg = validate(msg)
 	for _, r := range msg {
 		// step the rotors
 		e.step()
@@ -170,13 +192,7 @@ func (r *Rotor) value(c string, reflected bool) string {
 	// map for rotor wiring core
 	c = r.Wiring.get(c, reflected)
 	// adjust step value for exit contacts (left forward, right return)
-	i := int(c[0]-'A') - offset
-	if i < 0 {
-		offset = 26 + i
-		c = string(alphabet[offset])
-	} else {
-		c = string(alphabet[(abs(int(c[0]-'A')-offset))%26])
-	}
+	c = string(alphabet[abs(26+int(c[0]-'A')-offset)%26])
 	return c
 }
 
@@ -215,6 +231,8 @@ func main() {
 	v := loadConfig("config/M3.json")
 	v.Name = "M3 Wehrmacht"
 	//	v.setStepping(false)
-	v.saveConfig("config/M3.json")
-	v.Log.Println("ENCODED MSG:\t" + v.code("FIFMMESGOLQWM"))
+	//v.saveConfig("config/M3.json")
+	msg := "1234kwisatz@hader2ach!!!"
+	//v.Log.Println(validate(msg))
+	v.Log.Println("ENCODED MSG:\t" + v.code(msg))
 }
