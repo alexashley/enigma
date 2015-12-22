@@ -4,7 +4,7 @@ An [Enigma](https://en.wikipedia.org/wiki/Enigma_machine) emulator written in Go
 Currently only supports the M3 with simple stepping
 
 TODO
-- move rotors & reflectors in (Rotor | Reflector)Bank and select from those (reducing config filesize)
+- set return message chunks (3/4/5/6). -1 = one long string 
 - double step mechanism
 - shiftable static rotor
 - additional machine types (M4 up first)

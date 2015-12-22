@@ -10,15 +10,15 @@ import (
 
 // Enigma stores the configuration of the machine.
 type Enigma struct {
-	Name           string
-	Plugboard      Wiring
-	Rotors         [3]Rotor //TODO: change this to a slice?
-	Reflector      map[string]string
-	Stepping       bool
-	DoubleStep     bool
-	RotorChest     map[string]Rotor
-	ReflectorChest map[string]map[string]string
-	Log            *log.Logger `json:omitempty`
+	Name          string
+	Plugboard     Wiring            `json:"-"`
+	Rotors        [3]Rotor          `json:"-"`
+	Reflector     map[string]string `json:"-"`
+	Stepping      bool
+	DoubleStep    bool
+	RotorBank     map[string]Rotor             // all the (available) rotors
+	ReflectorBank map[string]map[string]string // all the reflectors
+	Log           *log.Logger                  `json:"-"`
 }
 
 // initLog configures the log for an Enigma struct.
@@ -82,6 +82,23 @@ func (e *Enigma) setStepping(status bool) {
 	e.Stepping = status
 }
 
+func (e *Enigma) setRotorPosition(rotorName string, position string) {
+	rotor := e.RotorBank[rotorName]
+	switch position {
+	case "right":
+		e.Rotors[0] = rotor
+	case "middle":
+		e.Rotors[1] = rotor
+	case "left":
+		e.Rotors[2] = rotor
+	}
+}
+
+func (e *Enigma) setReflector(reflectorName string) {
+	reflector := e.ReflectorBank[reflectorName]
+	e.Reflector = reflector
+}
+
 // isUpperCaseAscii checks if input is in the ASCII range A ... Z
 func isUppercaseAscii(b byte) bool {
 	return (b >= 'A' && b <= 'Z')
@@ -128,7 +145,8 @@ func (e *Enigma) code(msg string) string {
 			c = p
 		}
 		// forward signal path
-		for _, rotor := range e.Rotors {
+		for i := 0; i < len(e.Rotors); i++ {
+			rotor := e.Rotors[i]
 			c = rotor.value(c, false)
 			e.Log.Println("ROTOR " + rotor.Name + ":\t" + c)
 		}
@@ -163,7 +181,9 @@ func loadConfig(filename string) *Enigma {
 		panic(err)
 	}
 	var e Enigma
-	err = json.Unmarshal(data, &e)
+	if err = json.Unmarshal(data, &e); err != nil {
+		panic(err)
+	}
 	e.initLog("stdout", "")
 	return &e
 }
@@ -173,7 +193,7 @@ type Rotor struct {
 	Name   string
 	Wiring Wiring
 	Step   int
-	Notch  string
+	Notch  [2]string
 }
 
 func abs(i int) int {
@@ -181,6 +201,24 @@ func abs(i int) int {
 		return i * -1
 	}
 	return i
+}
+
+func makeRotor(name string, mapping string, notches string) Rotor {
+	var r Rotor
+	r.Name = name
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	w := make(map[string]string)
+	for i := 0; i < len(alphabet); i++ {
+		k := string(alphabet[i])
+		v := string(mapping[i])
+		w[k] = v
+	}
+	r.Wiring.initWiring(w)
+	r.Notch[0] = string(notches[0])
+	if len(notches) == 2 {
+		r.Notch[1] = string(notches[1])
+	}
+	return r
 }
 
 // value returns the result of a pass through the rotor
@@ -229,10 +267,76 @@ func revMap(m map[string]string) map[string]string {
 
 func main() {
 	v := loadConfig("config/M3.json")
-	v.Name = "M3 Wehrmacht"
-	//	v.setStepping(false)
-	//v.saveConfig("config/M3.json")
-	msg := "1234kwisatz@hader2ach!!!"
+	//var v Enigma
+	/*v.Name = "M3 Wehrmacht"
+	v.Reflector = map[string]string{
+		"A": "Y",
+		"B": "R",
+		"C": "U",
+		"D": "H",
+		"E": "Q",
+		"F": "S",
+		"G": "L",
+		"H": "D",
+		"I": "P",
+		"J": "X",
+		"K": "N",
+		"L": "G",
+		"M": "O",
+		"N": "K",
+		"O": "M",
+		"P": "I",
+		"Q": "E",
+		"R": "B",
+		"S": "F",
+		"T": "Z",
+		"U": "C",
+		"V": "W",
+		"W": "V",
+		"X": "J",
+		"Y": "A",
+		"Z": "T",
+	}
+	v.Stepping = true
+	v.DoubleStep = true
+	names := []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII"}
+	maps := []string{
+		"EKMFLGDQVZNTOWYHXUSPAIBRCJ",
+		"AJDKSIRUXBLHWTMCQGZNPYFVOE",
+		"BDFHJLCPRTXVZNYEIWGAKMUSQO",
+		"ESOVPZJAYQUIRHXLNFTGKDCMWB",
+		"VZBRGITYUPSDNHLXAWMJQOFECK",
+		"JPGVOUMFYQBENHZRDKASXLICTW",
+		"NZJHGRCXMYSWBOUFAIVLPEKQDT",
+		"FKQHTLXOCBJSPDZRAMEWNIUYGV",
+	}
+	notches := []string{"Y", "M", "D", "R", "H", "HU", "HU", "HU"}
+	v.RotorBank = make(map[string]Rotor)
+	for i, r := range names {
+		v.RotorBank[r] = makeRotor(r, maps[i], notches[i])
+	}
+	v.ReflectorBank = make(map[string]map[string]string)
+	rNames := []string{"B", "C"}
+	reflectors := []string{
+		"YRUHQSLDPXNGOKMIEBFZCWVJAT",
+		"FVPJIAOYEDRZXWGCTKUQSBNMHL",
+	}
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	for i, r := range reflectors {
+		mapping := make(map[string]string)
+		for idx, c := range r {
+			k := string(alphabet[idx])
+			v := string(c)
+			mapping[k] = v
+		}
+		v.ReflectorBank[rNames[i]] = mapping
+	}*/
+	v.setRotorPosition("I", "right")
+	v.setRotorPosition("II", "middle")
+	v.setRotorPosition("III", "left")
+	v.setReflector("B")
+	v.saveConfig("config/M3.json")
 	//v.Log.Println(validate(msg))
+	msg := "AQRAFDADFGBAK"
 	v.Log.Println("ENCODED MSG:\t" + v.code(msg))
 }

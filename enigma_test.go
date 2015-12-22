@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	M3 *Enigma = initEnigma("config/M3.json")
+	M3 *Enigma = initM3("config/M3.json")
 )
 
 func TestMain(m *testing.M) {
@@ -29,8 +29,12 @@ func assert(t *testing.T, expected string, actual string) {
 	}
 }
 
-func initEnigma(config string) *Enigma {
+func initM3(config string) *Enigma {
 	e := loadConfig(config)
+	e.setRotorPosition("I", "right")
+	e.setRotorPosition("II", "middle")
+	e.setRotorPosition("III", "left")
+	e.setReflector("B")
 	e.initLog("off", "")
 	return e
 }
