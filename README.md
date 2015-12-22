@@ -17,12 +17,15 @@ TODO
 Example:
 ```go
 func main() {
+  // load basic M3 configuration
   e := loadConfig("config/M3.json")
+  // choose the rotors (one of I, II, III, IV, V, VI, VII, VIII)
   e.setRotorPosition("I", "right")                                                
   e.setRotorPosition("II", "middle")                                              
   e.setRotorPosition("III", "left")                                               
-  e.setReflector("B")   
-  e.Log.Println(e.code("super secret message", 5))
+  // pick a reflector (either B or C)
+  e.setReflector("B")
+  e.Log.Println(e.code("top secret", 5)) // output: ZLBJP GPKM
 }
 ```
 Run the tests with `go test`
