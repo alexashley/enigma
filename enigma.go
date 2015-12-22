@@ -131,7 +131,9 @@ func validate(s string) string {
 // Plugboard -> Static Rotor -> R rotor -> M rotor -> L rotor
 // Then the signal is hits the reflector and does the reverse journey
 // L rotor -> M rotor -> R rotor -> static rotor -> plugboard
-func (e *Enigma) code(msg string) string {
+// msg: string to encode.
+// chunkSize: length of output chunks, separated by spaces. -1 returns 1 chunk
+func (e *Enigma) code(msg string, chunkSize int) string {
 	var result string
 	msg = validate(msg)
 	for _, r := range msg {
@@ -164,6 +166,16 @@ func (e *Enigma) code(msg string) string {
 			c = p
 		}
 		result += c
+	}
+	var s string = ""
+	if chunkSize != -1 {
+		for i := 0; i < len(result); i++ {
+			if i%chunkSize == 0 {
+				s += " "
+			}
+			s += string(result[i])
+		}
+		result = s
 	}
 	return result
 }
@@ -338,5 +350,5 @@ func main() {
 	v.saveConfig("config/M3.json")
 	//v.Log.Println(validate(msg))
 	msg := "AQRAFDADFGBAK"
-	v.Log.Println("ENCODED MSG:\t" + v.code(msg))
+	v.Log.Println("ENCODED MSG:\t" + v.code(msg, 5))
 }

@@ -16,10 +16,10 @@ func TestMain(m *testing.M) {
 // testHelper is the main testing template
 // Tests encryption and decryption of message
 func testHelper(t *testing.T, e *Enigma, msg string, encrypted string) {
-	actual := e.code(msg)
+	actual := e.code(msg, -1)
 	assert(t, encrypted, actual)
 	e.reset()
-	assert(t, e.code(encrypted), msg)
+	assert(t, e.code(encrypted, -1), msg)
 	e.reset()
 }
 
@@ -67,6 +67,6 @@ func TestM3EncodeLong(t *testing.T) {
 func TestInvalidInput(t *testing.T) {
 	original := "1234kwisatz@hader2ach"
 	encoded := "NNJJGXXWIMIZGTQ"
-	assert(t, encoded, M3.code(original))
+	assert(t, encoded, M3.code(original, -1))
 	M3.reset()
 }
