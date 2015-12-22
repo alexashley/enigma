@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	//	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,13 +11,15 @@ import (
 // Enigma stores the configuration of the machine.
 // Create a struct
 type Enigma struct {
-	Name       string
-	Plugboard  Wiring
-	Rotors     [3]Rotor //TODO: change this to a slice?
-	Reflector  map[string]string
-	Stepping   bool // increment left every keystroke, middle every
-	DoubleStep bool
-	Log        *log.Logger `json:omitempty`
+	Name           string
+	Plugboard      Wiring
+	Rotors         [3]Rotor //TODO: change this to a slice?
+	Reflector      map[string]string
+	Stepping       bool
+	DoubleStep     bool
+	RotorChest     map[string]Rotor
+	ReflectorChest map[string]map[string]string
+	Log            *log.Logger `json:omitempty`
 }
 
 // initLog configures the log for an Enigma struct.
@@ -161,11 +164,24 @@ func abs(i int) int {
 // value returns the result of a pass through the rotor
 func (r *Rotor) value(c string, reflected bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	// adjust for step value for right-hand (entrance) contacts
-	c = string(alphabet[(int(c[0]-'A')+r.Step)%26])
+	offset := r.Step
+	// adjust step value for entrance  contacts (right forward, left return)
+	c = string(alphabet[(abs(int(c[0]-'A')+offset))%26])
+	//	fmt.Println("ENTERS WIRING CORE AS " + c)
+
+	// map for rotor wiring core
 	c = r.Wiring.get(c, reflected)
-	// adjust for step value for left-hand (exit) contacts
-	c = string(alphabet[(abs(int(c[0]-'A')-r.Step))%26])
+
+	//	fmt.Println("LEAVES WIRING AS " + c) // A
+	// adjust step value for exit contacts (left forward, right return)
+	i := int(c[0]-'A') - offset
+	if i < 0 {
+		offset = 26 + i
+		c = string(alphabet[offset])
+	} else {
+		c = string(alphabet[(abs(int(c[0]-'A')-offset))%26])
+	}
+	//c = string(alphabet[offset%26])
 	return c
 }
 
@@ -184,7 +200,6 @@ func (w *Wiring) initWiring(mapping map[string]string) {
 }
 
 // get: given a key, return a value from the Wiring data structure
-//
 func (w *Wiring) get(key string, reverse bool) string {
 	if reverse {
 		return w.Rmap[key]
@@ -206,5 +221,5 @@ func main() {
 	v.Name = "M3 Wehrmacht"
 	//	v.setStepping(false)
 	v.saveConfig("config/M3.json")
-	v.Log.Println("ENCODED MSG:\t" + v.code("A"))
+	v.Log.Println("ENCODED MSG:\t" + v.code("AQRAFDADFGBAK"))
 }

@@ -225,5 +225,7 @@
 	},
 	"Stepping": true,
 	"DoubleStep": false,
+	"RotorChest": null,
+	"ReflectorChest": null,
 	"Log": {}
 }
