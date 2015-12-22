@@ -167,12 +167,8 @@ func (r *Rotor) value(c string, reflected bool) string {
 	offset := r.Step
 	// adjust step value for entrance  contacts (right forward, left return)
 	c = string(alphabet[(abs(int(c[0]-'A')+offset))%26])
-	//	fmt.Println("ENTERS WIRING CORE AS " + c)
-
 	// map for rotor wiring core
 	c = r.Wiring.get(c, reflected)
-
-	//	fmt.Println("LEAVES WIRING AS " + c) // A
 	// adjust step value for exit contacts (left forward, right return)
 	i := int(c[0]-'A') - offset
 	if i < 0 {
@@ -181,7 +177,6 @@ func (r *Rotor) value(c string, reflected bool) string {
 	} else {
 		c = string(alphabet[(abs(int(c[0]-'A')-offset))%26])
 	}
-	//c = string(alphabet[offset%26])
 	return c
 }
 
@@ -221,5 +216,5 @@ func main() {
 	v.Name = "M3 Wehrmacht"
 	//	v.setStepping(false)
 	v.saveConfig("config/M3.json")
-	v.Log.Println("ENCODED MSG:\t" + v.code("AQRAFDADFGBAK"))
+	v.Log.Println("ENCODED MSG:\t" + v.code("FIFMMESGOLQWM"))
 }
