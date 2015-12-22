@@ -279,76 +279,11 @@ func revMap(m map[string]string) map[string]string {
 
 func main() {
 	v := loadConfig("config/M3.json")
-	//var v Enigma
-	/*v.Name = "M3 Wehrmacht"
-	v.Reflector = map[string]string{
-		"A": "Y",
-		"B": "R",
-		"C": "U",
-		"D": "H",
-		"E": "Q",
-		"F": "S",
-		"G": "L",
-		"H": "D",
-		"I": "P",
-		"J": "X",
-		"K": "N",
-		"L": "G",
-		"M": "O",
-		"N": "K",
-		"O": "M",
-		"P": "I",
-		"Q": "E",
-		"R": "B",
-		"S": "F",
-		"T": "Z",
-		"U": "C",
-		"V": "W",
-		"W": "V",
-		"X": "J",
-		"Y": "A",
-		"Z": "T",
-	}
-	v.Stepping = true
-	v.DoubleStep = true
-	names := []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII"}
-	maps := []string{
-		"EKMFLGDQVZNTOWYHXUSPAIBRCJ",
-		"AJDKSIRUXBLHWTMCQGZNPYFVOE",
-		"BDFHJLCPRTXVZNYEIWGAKMUSQO",
-		"ESOVPZJAYQUIRHXLNFTGKDCMWB",
-		"VZBRGITYUPSDNHLXAWMJQOFECK",
-		"JPGVOUMFYQBENHZRDKASXLICTW",
-		"NZJHGRCXMYSWBOUFAIVLPEKQDT",
-		"FKQHTLXOCBJSPDZRAMEWNIUYGV",
-	}
-	notches := []string{"Y", "M", "D", "R", "H", "HU", "HU", "HU"}
-	v.RotorBank = make(map[string]Rotor)
-	for i, r := range names {
-		v.RotorBank[r] = makeRotor(r, maps[i], notches[i])
-	}
-	v.ReflectorBank = make(map[string]map[string]string)
-	rNames := []string{"B", "C"}
-	reflectors := []string{
-		"YRUHQSLDPXNGOKMIEBFZCWVJAT",
-		"FVPJIAOYEDRZXWGCTKUQSBNMHL",
-	}
-	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	for i, r := range reflectors {
-		mapping := make(map[string]string)
-		for idx, c := range r {
-			k := string(alphabet[idx])
-			v := string(c)
-			mapping[k] = v
-		}
-		v.ReflectorBank[rNames[i]] = mapping
-	}*/
 	v.setRotorPosition("I", "right")
 	v.setRotorPosition("II", "middle")
 	v.setRotorPosition("III", "left")
 	v.setReflector("B")
 	v.saveConfig("config/M3.json")
-	//v.Log.Println(validate(msg))
 	msg := "AQRAFDADFGBAK"
 	v.Log.Println("ENCODED MSG:\t" + v.code(msg, 5))
 }
