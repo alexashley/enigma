@@ -4,7 +4,6 @@ An [Enigma](https://en.wikipedia.org/wiki/Enigma_machine) emulator written in Go
 Currently only supports the M3 with simple stepping
 
 TODO
-- set return message chunks (3/4/5/6). -1 = one long string 
 - double step mechanism
 - shiftable static rotor
 - additional machine types (M4 up first)
@@ -19,7 +18,11 @@ Example:
 ```go
 func main() {
   e := loadConfig("config/M3.json")
-  e.Log.Println(e.code("super secret message"))
+  e.setRotorPosition("I", "right")                                                
+  e.setRotorPosition("II", "middle")                                              
+  e.setRotorPosition("III", "left")                                               
+  e.setReflector("B")   
+  e.Log.Println(e.code("super secret message", 5))
 }
 ```
 Run the tests with `go test`
