@@ -17,14 +17,14 @@ Example:
 ```go
 func main() {
   // load basic M3 configuration
-  e := loadConfig("config/M3.json")
+  e := LoadConfig("config/M3.json")
   // choose the rotors (one of I, II, III, IV, V, VI, VII, VIII)
-  e.setRotorPosition("I", "right")                                                
-  e.setRotorPosition("II", "middle")                                              
-  e.setRotorPosition("III", "left")                                               
+  e.SetRotorPosition("I", "right")                                                
+  e.SetRotorPosition("II", "middle")                                              
+  e.SetRotorPosition("III", "left")                                               
   // pick a reflector (either B or C)
-  e.setReflector("B")
-  e.Log.Println(e.code("top secret", 5)) // output: ZLBJP GPKM
+  e.SetReflector("B")
+  e.Log.Println(e.code("So long and thanks for all the fish!", 5)) // output: XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
 }
 ```
 Run the tests with `go test`
