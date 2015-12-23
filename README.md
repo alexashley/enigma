@@ -1,12 +1,11 @@
 # Enigma
 An [Enigma](https://en.wikipedia.org/wiki/Enigma_machine) emulator written in Go.
 ## Status
-Currently only supports the M3 with simple stepping
+Currently only supports the M3
 
-TODO
-- double step mechanism
+TO-DO:
 - shiftable static rotor
-- additional machine types (M4 up first)
+- additional machine types
 
 ## Features
 - Can be extended through the use of JSON configuration files (see config directory)
