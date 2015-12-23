@@ -24,7 +24,8 @@ func main() {
   e.SetRotorPosition("III", "left")                                               
   // pick a reflector (either B or C)
   e.SetReflector("B")
-  e.Log.Println(e.code("So long and thanks for all the fish!", 5)) // output: XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
+  // output: XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
+  e.Log.Println(e.code("So long and thanks for all the fish!", 5)) 
 }
 ```
 Run the tests with `go test`
