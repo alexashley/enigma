@@ -1,55 +1,55 @@
 {
-	"Name": "",
+	"Name": "M3",
 	"Stepping": true,
-	"DoubleStep": false,
+	"DoubleStep": true,
 	"RotorBank": {
 		"I": {
 			"Name": "I",
 			"Wiring": "EKMFLGDQVZNTOWYHXUSPAIBRCJ",
 			"Step": 0,
-			"Notch": "Y"
+			"Turnover": "Q"
 		},
 		"II": {
 			"Name": "II",
 			"Wiring": "AJDKSIRUXBLHWTMCQGZNPYFVOE",
 			"Step": 0,
-			"Notch": "M"
+			"Turnover": "E"
 		},
 		"III": {
 			"Name": "III",
 			"Wiring": "BDFHJLCPRTXVZNYEIWGAKMUSQO",
 			"Step": 0,
-			"Notch": "D"
+			"Turnover": "V"
 		},
 		"IV": {
 			"Name": "IV",
 			"Wiring": "ESOVPZJAYQUIRHXLNFTGKDCMWB",
 			"Step": 0,
-			"Notch": "R"
+			"Turnover": "J"
 		},
 		"V": {
 			"Name": "V",
 			"Wiring": "VZBRGITYUPSDNHLXAWMJQOFECK",
 			"Step": 0,
-			"Notch": "H"
+			"Turnover": "Z"
 		},
 		"VI": {
 			"Name": "VI",
 			"Wiring": "JPGVOUMFYQBENHZRDKASXLICTW",
 			"Step": 0,
-			"Notch": "HU"
+			"Turnover": "MZ"
 		},
 		"VII": {
 			"Name": "VII",
 			"Wiring": "NZJHGRCXMYSWBOUFAIVLPEKQDT",
 			"Step": 0,
-			"Notch": "HU"
+			"Turnover": "MZ"
 		},
 		"VIII": {
 			"Name": "VIII",
 			"Wiring": "FKQHTLXOCBJSPDZRAMEWNIUYGV",
 			"Step": 0,
-			"Notch": "HU"
+			"Turnover": "MZ"
 		}
 	},
 	"ReflectorBank": {
@@ -57,13 +57,13 @@
 			"Name": "B",
 			"Wiring": "YRUHQSLDPXNGOKMIEBFZCWVJAT",
 			"Step": 0,
-			"Notch": ""
+			"Turnover": ""
 		},
 		"C": {
 			"Name": "C",
 			"Wiring": "FVPJIAOYEDRZXWGCTKUQSBNMHL",
 			"Step": 0,
-			"Notch": ""
+			"Turnover": ""
 		}
 	}
 }

@@ -61,11 +61,26 @@ func (e *Enigma) step() {
 	msg := "STEPPED ROTOR "
 	e.Rotors[0].Step += 1
 	e.Log.Println(msg + string(e.Rotors[0].Name))
-	for i := 1; i < len(e.Rotors); i++ {
-		if e.Rotors[i-1].Step >= 26 && (e.Rotors[i-1].Step%26) == 0 {
-			e.Rotors[i].Step += 1
-			e.Log.Println(msg + string(e.Rotors[i].Name))
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	if e.DoubleStep {
+		dmsg := "DOUBLE STEP "
+		window := string(alphabet[e.Rotors[0].Step%26])
+		afterTurnoverLetters := ""
+		var idx int
+		var t string
+		for i := 0; i < len(e.Rotors[0].Turnover); i++ {
+			t = string(e.Rotors[0].Turnover[i])
+			idx = strings.Index(alphabet, string(t)) + 1
+			afterTurnoverLetters += string(alphabet[idx])
 		}
+		if strings.Index(window, afterTurnoverLetters) != -1 {
+			e.Log.Println(dmsg + e.Rotors[1].Name)
+			e.Rotors[1].Step += 1
+		}
+		/*w := string(alphabet[e.Rotors[1].Step%26])
+		if strings.Index(w, e.Rotors[1].Notch) != -1 {
+			e.Rotors[2].Step += 1
+		}*/
 	}
 }
 
@@ -202,10 +217,10 @@ func loadConfig(filename string) *Enigma {
 
 // Rotor is a data structure for representing an Enigma rotor.
 type Rotor struct {
-	Name   string
-	Wiring string
-	Step   int
-	Notch  string
+	Name     string
+	Wiring   string
+	Step     int
+	Turnover string
 }
 
 func abs(i int) int {
@@ -213,14 +228,6 @@ func abs(i int) int {
 		return i * -1
 	}
 	return i
-}
-
-func makeRotor(name string, mapping string, notches string) Rotor {
-	var r Rotor
-	r.Name = name
-	r.Wiring = mapping
-	r.Notch = notches
-	return r
 }
 
 // value returns the result of a pass through the rotor
@@ -250,7 +257,10 @@ type Wiring struct {
 // initWiring is a constructor for the Wiring data structure
 func (w *Wiring) initWiring(mapping map[string]string) {
 	w.Fmap = mapping
-	w.Rmap = revMap(mapping)
+	w.Rmap = make(map[string]string) //revMap(mapping)
+	for k, v := range w.Fmap {
+		w.Rmap[v] = k
+	}
 }
 
 // get: given a key, return a value from the Wiring data structure
@@ -261,20 +271,12 @@ func (w *Wiring) get(key string, reverse bool) string {
 	return w.Fmap[key]
 }
 
-// revMap reverses a map. k:v -> v:k
-func revMap(m map[string]string) map[string]string {
-	mRev := make(map[string]string)
-	for k, v := range m {
-		mRev[v] = k
-	}
-	return mRev
-}
 func main() {
 	v := loadConfig("config/M3.json")
 	v.setRotorPosition("I", "right")
 	v.setRotorPosition("II", "middle")
 	v.setRotorPosition("III", "left")
 	v.setReflector("B")
-	msg := "top secret"
+	msg := "So long and thanks for all the fish!"
 	v.Log.Println("ENCODED MSG:\t" + v.code(msg, 5))
 }

@@ -70,3 +70,10 @@ func TestInvalidInput(t *testing.T) {
 	assert(t, encoded, M3.code(original, -1))
 	M3.reset()
 }
+
+func TestM3DoubleStep(t *testing.T) {
+	original := "So long and thanks for all the fish"
+	encoded := "XLNZBCSCQQPWWFRUEGOHNMLPUZIM"
+	assert(t, encoded, M3.code(original, -1))
+	M3.reset()
+}
