@@ -20,12 +20,11 @@ Example:
 ```go
 import "enigma"
 func main() {
-  // load basic M3 configuration
-  e := enigma.LoadConfig("config/M3.json")
+  M3 := enigma.LoadConfig("config/M3.json")
   // rotors: left middle right, then reflector
-  e.InitEnigma("I", "II", "III", "B")
-  // output: XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
-  e.Log.Println(e.code("So long and thanks for all the fish!", 5)) 
+  M3.InitEnigma("I", "II", "III", "B") 
+  // XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
+  M3.Log.Println(M3.Code("So long and thanks for all the fish!", 5))  
 }
 ```
 Run the tests with `go test`
