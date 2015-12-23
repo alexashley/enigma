@@ -26,7 +26,7 @@ type Enigma struct {
 // stdout -> os.Stdout
 // off -> ioutil.Discard
 // "file" -> writes to given filename (given as second arg)
-func (e *Enigma) initLog(logDest string, logFile string) {
+func (e *Enigma) InitLog(logDest string, logFile string) {
 	msg := ""
 	flags := log.Ldate | log.Lmicroseconds | log.Lshortfile
 	switch logDest {
@@ -86,18 +86,18 @@ func (e *Enigma) step() {
 
 // reset clears the internal state of the machine.
 // Used mainly for testing
-func (e *Enigma) reset() {
+func (e *Enigma) Reset() {
 	for i := 0; i < len(e.Rotors); i++ {
 		e.Rotors[i].Step = 0
 	}
 }
 
 // setStepping enables/disables rotor stepping
-func (e *Enigma) setStepping(status bool) {
+func (e *Enigma) SetStepping(status bool) {
 	e.Stepping = status
 }
 
-func (e *Enigma) setRotorPosition(rotorName string, position string) {
+func (e *Enigma) SetRotorPosition(rotorName string, position string) {
 	rotor := e.RotorBank[rotorName]
 	switch position {
 	case "right":
@@ -109,7 +109,7 @@ func (e *Enigma) setRotorPosition(rotorName string, position string) {
 	}
 }
 
-func (e *Enigma) setReflector(reflectorName string) {
+func (e *Enigma) SetReflector(reflectorName string) {
 	reflector := e.ReflectorBank[reflectorName]
 	e.Reflector = reflector
 }
@@ -148,7 +148,7 @@ func validate(s string) string {
 // L rotor -> M rotor -> R rotor -> static rotor -> plugboard
 // msg: string to encode.
 // chunkSize: length of output chunks, separated by spaces. -1 returns 1 chunk
-func (e *Enigma) code(msg string, chunkSize int) string {
+func (e *Enigma) Code(msg string, chunkSize int) string {
 	var result string
 	msg = validate(msg)
 	for _, r := range msg {
@@ -196,13 +196,13 @@ func (e *Enigma) code(msg string, chunkSize int) string {
 }
 
 // saveConfig marshals the Enigma state into json and saves it to disk.
-func (e *Enigma) saveConfig(filename string) {
+func (e *Enigma) SaveConfig(filename string) {
 	data, _ := json.MarshalIndent(e, "", "\t")
 	ioutil.WriteFile(filename, data, 0644)
 }
 
 // loadConfig initializes an Enigma by loading a json configuration file.
-func loadConfig(filename string) *Enigma {
+func LoadConfig(filename string) *Enigma {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
@@ -211,7 +211,7 @@ func loadConfig(filename string) *Enigma {
 	if err = json.Unmarshal(data, &e); err != nil {
 		panic(err)
 	}
-	e.initLog("stdout", "")
+	e.InitLog("stdout", "")
 	return &e
 }
 
@@ -272,11 +272,12 @@ func (w *Wiring) get(key string, reverse bool) string {
 }
 
 func main() {
-	v := loadConfig("config/M3.json")
-	v.setRotorPosition("I", "right")
-	v.setRotorPosition("II", "middle")
-	v.setRotorPosition("III", "left")
-	v.setReflector("B")
-	msg := "So long and thanks for all the fish!"
-	v.Log.Println("ENCODED MSG:\t" + v.code(msg, 5))
+	v := LoadConfig("config/M3.json")
+	v.SetRotorPosition("I", "right")
+	v.SetRotorPosition("II", "middle")
+	v.SetRotorPosition("III", "left")
+	v.SetReflector("B")
+	//msg := "So long and thanks for all the fish!"
+	msg := "XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM"
+	v.Log.Println("ENCODED MSG: " + v.Code(msg, -1))
 }
