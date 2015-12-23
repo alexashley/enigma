@@ -17,13 +17,9 @@ Example:
 ```go
 func main() {
   // load basic M3 configuration
-  e := LoadConfig("config/M3.json")
-  // choose the rotors (one of I, II, III, IV, V, VI, VII, VIII)
-  e.SetRotorPosition("I", "right")                                                
-  e.SetRotorPosition("II", "middle")                                              
-  e.SetRotorPosition("III", "left")                                               
-  // pick a reflector (either B or C)
-  e.SetReflector("B")
+  e := enigma.LoadConfig("config/M3.json")
+  // rotors: left middle right, then reflector
+  e.InitEnigma("I", "II", "III", "B")
   // output: XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM
   e.Log.Println(e.code("So long and thanks for all the fish!", 5)) 
 }

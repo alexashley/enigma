@@ -1,4 +1,4 @@
-package main
+package enigma
 
 import (
 	"encoding/json"
@@ -21,9 +21,16 @@ type Enigma struct {
 	Log           *log.Logger      `json:"-"`
 }
 
+func (e *Enigma) InitEnigma(left string, middle string, right string, reflector string) {
+	e.SetRotorPosition(left, "left")
+	e.SetRotorPosition(middle, "middle")
+	e.SetRotorPosition(right, "right")
+	e.SetReflector("B")
+}
+
 // initLog configures the log for an Enigma struct.
 // The first argument is the destination of the log.
-// stdout -> os.Stdout
+// stdout -> os.Stdoutr
 // off -> ioutil.Discard
 // "file" -> writes to given filename (given as second arg)
 func (e *Enigma) InitLog(logDest string, logFile string) {
@@ -271,7 +278,7 @@ func (w *Wiring) get(key string, reverse bool) string {
 	return w.Fmap[key]
 }
 
-func main() {
+/*func main() {
 	v := LoadConfig("config/M3.json")
 	v.SetRotorPosition("I", "right")
 	v.SetRotorPosition("II", "middle")
@@ -279,5 +286,5 @@ func main() {
 	v.SetReflector("B")
 	//msg := "So long and thanks for all the fish!"
 	msg := "XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM"
-	v.Log.Println("ENCODED MSG: " + v.Code(msg, -1))
-}
+	v.Log.Println("ENCODED MSG: " + v.Code(msg, 5))
+}*/
