@@ -13,8 +13,12 @@ TO-DO:
 - Tests for each machine type 
 
 ## Usage
+- `git clone https://github.com/gleisner/enigma.git` into the `src` directory of your `$GOPATH` 
+-  `go install enigma`
+
 Example:
 ```go
+import "enigma"
 func main() {
   // load basic M3 configuration
   e := enigma.LoadConfig("config/M3.json")
