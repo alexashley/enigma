@@ -11,14 +11,14 @@ import (
 // Enigma stores the configuration of the machine.
 type Enigma struct {
 	Name          string
-	Plugboard     Wiring            `json:"-"`
-	Rotors        [3]Rotor          `json:"-"`
-	Reflector     map[string]string `json:"-"`
+	Plugboard     Wiring   `json:"-"`
+	Rotors        [3]Rotor `json:"-"`
+	Reflector     Rotor    `json:"-"`
 	Stepping      bool
 	DoubleStep    bool
-	RotorBank     map[string]Rotor             // all the (available) rotors
-	ReflectorBank map[string]map[string]string // all the reflectors
-	Log           *log.Logger                  `json:"-"`
+	RotorBank     map[string]Rotor // all the (available) rotors
+	ReflectorBank map[string]Rotor // all the reflectors
+	Log           *log.Logger      `json:"-"`
 }
 
 // initLog configures the log for an Enigma struct.
@@ -149,15 +149,15 @@ func (e *Enigma) code(msg string, chunkSize int) string {
 		// forward signal path
 		for i := 0; i < len(e.Rotors); i++ {
 			rotor := e.Rotors[i]
-			c = rotor.value(c, false)
+			c = rotor.value(c, false, true)
 			e.Log.Println("ROTOR " + rotor.Name + ":\t" + c)
 		}
 		// reflector
-		c = e.Reflector[c]
+		c = e.Reflector.value(c, false, false)
 		e.Log.Println("REFLECTOR:\t" + c)
 		// reverse signal path
 		for i := len(e.Rotors) - 1; i >= 0; i-- {
-			c = e.Rotors[i].value(c, true)
+			c = e.Rotors[i].value(c, true, true)
 			e.Log.Println("ROTOR " + e.Rotors[i].Name + ":\t" + c)
 		}
 		// plugboard return
@@ -203,9 +203,9 @@ func loadConfig(filename string) *Enigma {
 // Rotor is a data structure for representing an Enigma rotor.
 type Rotor struct {
 	Name   string
-	Wiring Wiring
+	Wiring string
 	Step   int
-	Notch  [2]string
+	Notch  string
 }
 
 func abs(i int) int {
@@ -218,39 +218,32 @@ func abs(i int) int {
 func makeRotor(name string, mapping string, notches string) Rotor {
 	var r Rotor
 	r.Name = name
-	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	w := make(map[string]string)
-	for i := 0; i < len(alphabet); i++ {
-		k := string(alphabet[i])
-		v := string(mapping[i])
-		w[k] = v
-	}
-	r.Wiring.initWiring(w)
-	r.Notch[0] = string(notches[0])
-	if len(notches) == 2 {
-		r.Notch[1] = string(notches[1])
-	}
+	r.Wiring = mapping
+	r.Notch = notches
 	return r
 }
 
 // value returns the result of a pass through the rotor
-func (r *Rotor) value(c string, reflected bool) string {
+func (r *Rotor) value(c string, reflected bool, rotated bool) string {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	offset := r.Step
 	// adjust step value for entrance  contacts (right forward, left return)
 	c = string(alphabet[(abs(int(c[0]-'A')+offset))%26])
-	// map for rotor wiring core
-	c = r.Wiring.get(c, reflected)
+	// rotor wiring core
+	if !reflected {
+		c = string(r.Wiring[strings.Index(alphabet, string(c))])
+	} else {
+		c = string(alphabet[strings.Index(r.Wiring, string(c))])
+	}
 	// adjust step value for exit contacts (left forward, right return)
 	c = string(alphabet[abs(26+int(c[0]-'A')-offset)%26])
 	return c
 }
 
-// Wiring is a data structure for representing the rotor and plugboard wiring
 type Wiring struct {
-	// forward mapping: right side of rotor/forward signal through plugboard
+	// forward mapping: forward signal through plugboard
 	Fmap map[string]string
-	// reverse mapping: left side of rotor/return signal through plugboard
+	// reverse mapping: return signal through plugboard
 	Rmap map[string]string
 }
 
@@ -276,14 +269,12 @@ func revMap(m map[string]string) map[string]string {
 	}
 	return mRev
 }
-
 func main() {
 	v := loadConfig("config/M3.json")
 	v.setRotorPosition("I", "right")
 	v.setRotorPosition("II", "middle")
 	v.setRotorPosition("III", "left")
 	v.setReflector("B")
-	v.saveConfig("config/M3.json")
-	msg := "AQRAFDADFGBAK"
+	msg := "top secret"
 	v.Log.Println("ENCODED MSG:\t" + v.code(msg, 5))
 }
