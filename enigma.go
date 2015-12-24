@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+var (
+	alphabet string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
+
 // Enigma stores the configuration of the machine.
 type Enigma struct {
 	Name          string
@@ -68,7 +72,6 @@ func (e *Enigma) step() {
 	msg := "STEPPED ROTOR "
 	e.Rotors[0].Step += 1
 	e.Log.Println(msg + string(e.Rotors[0].Name))
-	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	if e.DoubleStep {
 		dmsg := "DOUBLE STEP "
 		window := string(alphabet[e.Rotors[0].Step%26])
@@ -84,10 +87,6 @@ func (e *Enigma) step() {
 			e.Log.Println(dmsg + e.Rotors[1].Name)
 			e.Rotors[1].Step += 1
 		}
-		/*w := string(alphabet[e.Rotors[1].Step%26])
-		if strings.Index(w, e.Rotors[1].Notch) != -1 {
-			e.Rotors[2].Step += 1
-		}*/
 	}
 }
 
@@ -239,7 +238,6 @@ func abs(i int) int {
 
 // value returns the result of a pass through the rotor
 func (r *Rotor) value(c string, reflected bool, rotated bool) string {
-	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	offset := r.Step
 	// adjust step value for entrance  contacts (right forward, left return)
 	c = string(alphabet[(abs(int(c[0]-'A')+offset))%26])
@@ -252,6 +250,10 @@ func (r *Rotor) value(c string, reflected bool, rotated bool) string {
 	// adjust step value for exit contacts (left forward, right return)
 	c = string(alphabet[abs(26+int(c[0]-'A')-offset)%26])
 	return c
+}
+
+func (r *Rotor) setRing(letter string) {
+	r.Step = strings.Index(alphabet, letter)
 }
 
 type Wiring struct {
@@ -277,14 +279,3 @@ func (w *Wiring) get(key string, reverse bool) string {
 	}
 	return w.Fmap[key]
 }
-
-/*func main() {
-	v := LoadConfig("config/M3.json")
-	v.SetRotorPosition("I", "right")
-	v.SetRotorPosition("II", "middle")
-	v.SetRotorPosition("III", "left")
-	v.SetReflector("B")
-	//msg := "So long and thanks for all the fish!"
-	msg := "XLNZB CSCQQ PWWFR UEGOH NMLPU ZIM"
-	v.Log.Println("ENCODED MSG: " + v.Code(msg, 5))
-}*/
