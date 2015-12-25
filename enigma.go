@@ -153,7 +153,7 @@ func validate(s string) string {
 // Then the signal is hits the reflector and does the reverse journey
 // L rotor -> M rotor -> R rotor -> static rotor -> plugboard
 // msg: string to encode.
-// chunkSize: length of output chunks, separated by spaces. -1 returns 1 chunk
+// chunkSize: length of output chunks, separated by spaces. -1 -> 1 chunk
 func (e *Enigma) Code(msg string, chunkSize int) string {
 	var result string
 	msg = validate(msg)

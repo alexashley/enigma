@@ -31,10 +31,7 @@ func assert(t *testing.T, expected string, actual string) {
 
 func initM3(config string) *Enigma {
 	e := LoadConfig(config)
-	e.SetRotorPosition("I", "right")
-	e.SetRotorPosition("II", "middle")
-	e.SetRotorPosition("III", "left")
-	e.SetReflector("B")
+	e.InitEnigma("III", "II", "I", "B")
 	e.InitLog("off", "")
 	return e
 }
